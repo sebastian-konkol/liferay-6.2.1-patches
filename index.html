@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Liferay-6.2.1-patches by sebastian-konkol</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Liferay-6.2.1-patches</h1>
+        <p>Liferay 6.2.1 patches</p>
+        <p class="view"><a href="https://github.com/sebastian-konkol/liferay-6.2.1-patches">View the Project on GitHub <small>sebastian-konkol/liferay-6.2.1-patches</small></a></p>
+        <ul>
+          <li><a href="https://github.com/sebastian-konkol/liferay-6.2.1-patches/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/sebastian-konkol/liferay-6.2.1-patches/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/sebastian-konkol/liferay-6.2.1-patches">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h3>
+<a name="solution-for-issue-with-authentication-by-email-under-liferay-621-version" class="anchor" href="#solution-for-issue-with-authentication-by-email-under-liferay-621-version"><span class="octicon octicon-link"></span></a>Solution for issue with authentication by email under Liferay 6.2.1 version.</h3>
+
+<h3>
+<a name="background" class="anchor" href="#background"><span class="octicon octicon-link"></span></a>Background</h3>
+
+<p>For one of our customers we are upgrading Liferay from version 6.0.5 to 6.2.1. Some parts of our client code had ability to talk to Liferay through web services. Also, users that were connecting to Liferay used their emails as logins. In 6.0.5 version Liferay used different approach when you tried to login through WWW interface or through web service. Now, it was unified. I cannot agree or disagree with this unification. However new approach introduced serious issue if you tried to connect to Liferay 6.2.1 through web services using Apache Axis. </p>
+
+<h3>
+<a name="issue" class="anchor" href="#issue"><span class="octicon octicon-link"></span></a>Issue</h3>
+
+<p>Liferay introduced basic authentication that looks like this: http://username:password@localhost:8081/my_portlet/api/axis. Everything works OK as long as you will not try to authenticate with email. When you try to authenticate with email lets say:
+http://my@email.com:password@localhost:8081/my_portlet/api/axis it's clear that the link will be broken. So turning on email authentication renders Liferay pretty much useless. </p>
+
+<h3>
+<a name="solution" class="anchor" href="#solution"><span class="octicon octicon-link"></span></a>Solution</h3>
+
+<p>Well there is solution to that. Firstly, you should encode "@" as %40 (e.g.: http://my%40email.com:password@localhost:8081/my_portlet/api/axis) but it does not work out of the box. Well that sucks because authors of LoginUtil didn't tried actually to decode login from URL (maybe there is a purpose in that - i don't know). So, to put up simply you have to patch LoginUtil so it could correctly get login information from LoginUtil. It goes like this:</p>
+
+<pre><code>       try {
+            login  = URLDecoder.decode(login, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+           //do nothing we just tried to fix-up login but we failed
+        }
+</code></pre>
+
+<p>as in file: <a href="https://github.com/sebastian-konkol/liferay-6.2.1-patches/blob/master/src/main/java/com/liferay/portlet/login/util/LoginUtil.java#L68-L72">https://github.com/sebastian-konkol/liferay-6.2.1-patches/blob/master/src/main/java/com/liferay/portlet/login/util/LoginUtil.java#L68-L72</a></p>
+
+<p>You can also clone attached project from repository, compile it using maven and place it inside ROOT.war/WEB-INF/classes/ directory. Then your modified class will always be compiled before any other jar files. Also, the other possibility is just to compile it inside portal-impl.jar. Both ways works the same.</p>
+
+<h3>
+<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+
+<p>Having trouble with this patch? Email me or twitter @neuvio. </p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/sebastian-konkol">sebastian-konkol</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
