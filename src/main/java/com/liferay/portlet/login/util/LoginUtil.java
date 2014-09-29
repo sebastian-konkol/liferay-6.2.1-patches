@@ -68,7 +68,7 @@ public class LoginUtil {
         try {
             login  = URLDecoder.decode(login, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-           //do nothing we just tried
+           //do nothing we just tried to fix-up login but we failed
         }
         long userId = GetterUtil.getLong(login);
 
